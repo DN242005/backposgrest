@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { sequelize } = require('./models');
-
+const userRoutes = require('./routes/userRoutes'); // 👈 esta línea es clave
 
 const app = express();
 app.use(cors());
@@ -12,6 +12,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('¡Servidor funcionando localmente!');
 });
+
+app.use('/api/users', userRoutes);
 
 // Probar conexión a base de datos
 sequelize.authenticate()
