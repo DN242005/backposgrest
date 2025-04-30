@@ -1,22 +1,44 @@
-name: 🚀 Build and Push Docker Image
+name: deploy-pg-api
 
 on:
   push:
-    branches:
-      - master
+    branches: ["master"]
 
 jobs:
-  build-and-push:
+  deploy-pg-api:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 📥 Clonar repositorio
+      - name: 📥 Checkout del código
         uses: actions/checkout@v4
 
-      - name: 🐳 Login en Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: 🧰 Setup de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: 🏗️ Build de la imagen
-        run: docker build -t daniel24paz/postgres-users-daniel:latest .
+      - name: 📂 Comandos iniciales
+        run: |
+          echo 'hello world ...'
+          ls -la
 
-      - name: 🚀 Push de la imagen
-        run: docker push daniel24paz/postgres-users-daniel:latest
+      - name: 📝 Crear archivo .env
+        run: |
+          touch .env
+          echo "DEV_DATABASE_URL=${{ secrets.PG_CONN }}" >> .env
+          cat .env
+
+      - name: 🏗️ Build de imagen Docker
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/pg-restapi:${{ github.sha }} .
+
+      - name: 🖼️ Mostrar imágenes Docker
+        run: docker images
+
+      - name: 🔐 Login a Docker Hub
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+
+      - name: 🚀 Push a Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/pg-restapi:${{ github.sha }}
